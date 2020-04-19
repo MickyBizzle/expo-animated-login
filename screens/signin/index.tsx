@@ -4,67 +4,44 @@ import {
   StyleSheet,
   View,
   Dimensions,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
   TouchableWithoutFeedback,
+  Image,
 } from "react-native";
 import Animated, { Easing } from "react-native-reanimated";
 import { TapGestureHandler, State } from "react-native-gesture-handler";
-import Svg, { Image, Circle, ClipPath } from "react-native-svg";
+import Svg, { Image as SvgImage, Circle, ClipPath } from "react-native-svg";
+
+import { Button } from "../../components/Button";
+import { TextInput } from "../../components/TextInput";
 
 const { width, height } = Dimensions.get("window");
 const {
   Value,
-  event,
   block,
   cond,
+  event,
   eq,
   set,
   Clock,
-  startClock,
-  stopClock,
-  debug,
-  timing,
-  clockRunning,
   interpolate,
   Extrapolate,
   concat,
 } = Animated;
 
-function runTiming(clock, value, dest) {
-  const state = {
-    finished: new Value(0),
-    position: new Value(0),
-    time: new Value(0),
-    frameTime: new Value(0),
-  };
-
-  const config = {
-    duration: 800,
-    toValue: new Value(0),
-    easing: Easing.inOut(Easing.ease),
-  };
-
-  return block([
-    cond(clockRunning(clock), 0, [
-      set(state.finished, 0),
-      set(state.time, 0),
-      set(state.position, value),
-      set(state.frameTime, 0),
-      set(config.toValue, dest),
-      startClock(clock),
-    ]),
-    timing(clock, state, config),
-    cond(state.finished, debug("stop clock", stopClock(clock))),
-    state.position,
-  ]);
-}
+import { runTiming } from "./runTiming";
+import { firebaseAuth } from "../../environment/config";
 
 export default class SignIn extends Component {
   constructor() {
     super();
+
+    this.state = {
+      email: "",
+      password: "",
+    };
 
     this.buttonOpacity = new Value(1);
 
@@ -128,134 +105,133 @@ export default class SignIn extends Component {
   }
   render() {
     return (
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <KeyboardAvoidingView
-          behavior="padding"
-          enabled
-          style={{
-            flex: 1,
-            backgroundColor: "white",
-            justifyContent: "flex-end",
-          }}
-        >
-          <Animated.View
+      <KeyboardAvoidingView enabled behavior="padding" style={{ flex: 1 }}>
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+          <View
             style={{
-              ...StyleSheet.absoluteFill,
-              transform: [{ translateY: this.bgY }],
+              flex: 1,
+              backgroundColor: "white",
+              justifyContent: "flex-end",
             }}
           >
-            <Svg height={height + 50} width={width}>
-              <ClipPath id="clip">
-                <Circle r={height + 50} cx={width / 2} />
-              </ClipPath>
-              <Image
-                href={require("../../assets/background.jpg")}
-                width={width}
-                height={height + 50}
-                preserveAspectRatio="xMidyMid slice"
-                clipPath="url(#clip)"
-              />
-            </Svg>
-          </Animated.View>
-          <View style={{ height: height / 3, justifyContent: "center" }}>
-            <TapGestureHandler onHandlerStateChange={this.onStateChange}>
+            <Animated.View
+              style={{
+                ...StyleSheet.absoluteFill,
+                transform: [{ translateY: this.bgY }],
+              }}
+            >
+              <Svg height={height + 50} width={width}>
+                <ClipPath id="clip">
+                  <Circle r={height + 50} cx={width / 2} />
+                </ClipPath>
+                <SvgImage
+                  href={require("../../assets/images/background.jpg")}
+                  width={width}
+                  height={height + 50}
+                  preserveAspectRatio="xMidyMid slice"
+                  clipPath="url(#clip)"
+                />
+              </Svg>
+            </Animated.View>
+            <View
+              style={{
+                height: height / 3,
+                justifyContent: "center",
+              }}
+            >
+              <TapGestureHandler onHandlerStateChange={this.onStateChange}>
+                <Animated.View
+                  style={{
+                    opacity: this.buttonOpacity,
+                    transform: [{ translateY: this.buttonY }],
+                  }}
+                >
+                  <Button>SIGN IN</Button>
+                </Animated.View>
+              </TapGestureHandler>
               <Animated.View
                 style={{
-                  ...styles.button,
                   opacity: this.buttonOpacity,
                   transform: [{ translateY: this.buttonY }],
                 }}
               >
-                <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-                  SIGN IN
-                </Text>
+                <Button
+                  style={{ backgroundColor: "#2e71dc" }}
+                  textStyle={{ color: "white" }}
+                  pressedColor="#2355a4"
+                >
+                  SIGN IN WITH FACEBOOK
+                </Button>
               </Animated.View>
-            </TapGestureHandler>
-            <Animated.View
-              style={{
-                ...styles.button,
-                backgroundColor: "#2e71dc",
-                opacity: this.buttonOpacity,
-                transform: [{ translateY: this.buttonY }],
-              }}
-            >
-              <Text
-                style={{ fontSize: 20, fontWeight: "bold", color: "white" }}
-              >
-                SIGN IN WITH FACEBOOK
-              </Text>
-            </Animated.View>
-            <Animated.View
-              style={{
-                height: height / 3,
-                ...StyleSheet.absoluteFill,
-                top: null,
-                justifyContent: "center",
-                zIndex: this.textInputZIndex,
-                opacity: this.textInputOpacity,
-                transform: [{ translateY: this.textInputY }],
-                backgroundColor: "white",
-                borderTopRightRadius: 30,
-                borderTopLeftRadius: 30,
-              }}
-            >
-              <TapGestureHandler onHandlerStateChange={this.onCloseState}>
-                <Animated.View style={styles.closeBtn}>
-                  <Animated.Text
-                    style={{
-                      fontSize: 15,
-                      transform: [{ rotate: concat(this.rotateX, "deg") }],
-                    }}
-                  >
-                    X
-                  </Animated.Text>
-                </Animated.View>
-              </TapGestureHandler>
-              <TextInput
-                placeholder="EMAIL"
-                style={styles.textInput}
-                placeholderTextColor="black"
-              />
-              <TextInput
-                placeholder="PASSWORD"
-                style={styles.textInput}
-                placeholderTextColor="black"
-                secureTextEntry={true}
-              />
               <Animated.View
-                style={{
-                  ...styles.button,
-                  shadowOffset: { width: 2, height: 2 },
-                  shadowColor: "black",
-                  shadowOpacity: 0.4,
-                }}
+                style={[
+                  styles.formSection,
+                  {
+                    height: height / 3,
+                    ...StyleSheet.absoluteFill,
+
+                    zIndex: this.textInputZIndex,
+                    opacity: this.textInputOpacity,
+                    transform: [{ translateY: this.textInputY }],
+                  },
+                ]}
               >
-                <Text
+                <TapGestureHandler onHandlerStateChange={this.onCloseState}>
+                  <Animated.View style={styles.closeBtn}>
+                    <Animated.Text
+                      style={{
+                        fontSize: 15,
+                        transform: [{ rotate: concat(this.rotateX, "deg") }],
+                      }}
+                    >
+                      X
+                    </Animated.Text>
+                  </Animated.View>
+                </TapGestureHandler>
+
+                <TextInput
+                  placeholder="EMAIL"
+                  placeholderTextColor="black"
+                  keyboardType="email-address"
+                  value={this.state.email}
+                  onChangeText={(text) =>
+                    this.setState({ ...this.state, email: text })
+                  }
+                />
+                <TextInput
+                  placeholder="PASSWORD"
+                  placeholderTextColor="black"
+                  secureTextEntry={true}
+                  value={this.state.password}
+                  onChangeText={(text) =>
+                    this.setState({ ...this.state, password: text })
+                  }
+                />
+                <Button
                   style={{
-                    fontSize: 20,
-                    fontWeight: "bold",
+                    shadowOffset: { width: 2, height: 2 },
+                    shadowColor: "black",
+                    shadowOpacity: 0.4,
                   }}
                 >
                   SIGN IN
-                </Text>
+                </Button>
               </Animated.View>
-            </Animated.View>
+            </View>
           </View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  button: {
-    backgroundColor: "white",
-    height: 70,
-    marginHorizontal: 20,
-    borderRadius: 35,
-    alignItems: "center",
+  formSection: {
+    top: null,
     justifyContent: "center",
-    marginVertical: 5,
+    backgroundColor: "white",
+    borderTopRightRadius: 30,
+    borderTopLeftRadius: 30,
   },
   closeBtn: {
     height: 40,
@@ -270,14 +246,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 2 },
     shadowColor: "black",
     shadowOpacity: 0.4,
-  },
-  textInput: {
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 1,
-    marginHorizontal: 20,
-    paddingLeft: 10,
-    marginVertical: 5,
-    borderColor: "rgba(0,0,0,0.2)",
   },
 });

@@ -25,18 +25,25 @@ export default class App extends React.Component {
   }
 
   async _loadAssetsAsync() {
-    const imageAssets = cacheImages([require("./assets/background.jpg")]);
+    const imageAssets = cacheImages([
+      require("./assets/images/background.jpg"),
+    ]);
     await Promise.all([...imageAssets]);
   }
 
   render() {
-    if (!this.state.isReady) {
-      <AppLoading
-        startAsync={this._loadAssetsAsync}
-        onFinish={() => this.setState({ isReady: true })}
-        onError={console.warn}
-      />;
-    }
-    return <SignIn />;
+    return (
+      <>
+        {this.state.isReady ? (
+          <SignIn />
+        ) : (
+          <AppLoading
+            startAsync={this._loadAssetsAsync}
+            onFinish={() => this.setState({ isReady: true })}
+            onError={console.warn}
+          />
+        )}
+      </>
+    );
   }
 }
