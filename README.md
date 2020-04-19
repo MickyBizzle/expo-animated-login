@@ -1,3 +1,5 @@
-## React Native Starter, featuring expo, typescript, firebase and animated login UI
+# Animated login UI with react native reanimated
 
-This is a simple starter app that makes a great foundation for your new react native app! It is buut using expo and typescript, and ships with firebase installed (just add your own config) as well as a sleek animated login screen.
+On my journey of learning react native I wanted to get familiar with animation. I built this animated login view using react native reanimated in order to learn the basics of animation.
+
+![](ui.gif)
