@@ -2,4 +2,4 @@
 
 On my journey of learning react native I wanted to get familiar with animation. I built this animated login view using react native reanimated in order to learn the basics of animation.
 
-![](ui.gif)
+![](ui.gif =250x)
